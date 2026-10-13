@@ -1,13 +1,14 @@
 /* ==========================================================================
-   ISS LIVE TRACKER — STYLESHEET
+   ISS LIVE TRACKER — COMPLETE STYLESHEET
    Design System: Aerospace Mission Control Dark Glassmorphism
+   Optimized for: High Performance & Comprehensive Mobile Responsiveness
    ========================================================================== */
 
 :root {
   --bg-deep-space: #070b14;
-  --bg-panel: rgba(13, 20, 36, 0.78);
-  --bg-panel-hover: rgba(18, 28, 51, 0.88);
-  --border-glass: rgba(0, 240, 255, 0.18);
+  --bg-panel: rgba(13, 20, 36, 0.82);
+  --bg-panel-hover: rgba(18, 28, 51, 0.92);
+  --border-glass: rgba(0, 240, 255, 0.22);
   --border-subtle: rgba(255, 255, 255, 0.08);
 
   --accent-cyan: #00f0ff;
@@ -20,19 +21,23 @@
   --text-muted: #94a3b8;
   --text-dim: #64748b;
 
-  --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  --shadow-hud: 0 16px 40px -10px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 240, 255, 0.08);
+  --shadow-hud: 0 16px 40px -10px rgba(0, 0, 0, 0.75), 0 0 20px rgba(0, 240, 255, 0.08);
   --radius-lg: 16px;
   --radius-md: 10px;
   --radius-sm: 6px;
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html, body {
@@ -43,10 +48,12 @@ html, body {
   font-family: var(--font-body);
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  touch-action: manipulation;
 }
 
 /* ==========================================================================
-   Leaflet Map Styling
+   Leaflet Map Styling & Hardware Acceleration
    ========================================================================== */
 
 #map {
@@ -57,21 +64,23 @@ html, body {
   left: 0;
   z-index: 1;
   background: #090e1a;
+  overscroll-behavior: none;
 }
 
-/* Dark Tactical Tile Filter (Applied when theme is dark) */
+/* Tactical Dark Tile Filter for OpenStreetMap */
 body.dark-mode .leaflet-tile-pane {
   filter: brightness(0.65) invert(1) contrast(3.2) hue-rotate(200deg) saturate(0.35) brightness(0.7);
+  transition: filter 0.3s ease;
 }
 
-/* Custom Leaflet Controls Position & Appearance */
+/* Custom Zoom Controls */
 .leaflet-control-zoom {
   border: 1px solid var(--border-glass) !important;
   box-shadow: var(--shadow-hud) !important;
   border-radius: var(--radius-md) !important;
   overflow: hidden;
-  margin-bottom: 24px !important;
-  margin-left: 20px !important;
+  margin-top: 80px !important;
+  margin-left: 16px !important;
 }
 
 .leaflet-control-zoom a {
@@ -87,13 +96,14 @@ body.dark-mode .leaflet-tile-pane {
   color: var(--accent-cyan) !important;
 }
 
-/* Smooth interpolation for Leaflet marker icon */
+/* Hardware accelerated smooth marker movement */
 .leaflet-marker-icon {
-  transition: transform 0.65s cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 /* ==========================================================================
-   ISS Satellite Marker & Pulsing Radar
+   ISS Satellite Marker & Pulsing Radar Beacon
    ========================================================================== */
 
 .iss-marker-container {
@@ -115,6 +125,7 @@ body.dark-mode .leaflet-tile-pane {
   background: rgba(0, 240, 255, 0.12);
   animation: radar-ping 2.5s cubic-bezier(0, 0.2, 0.8, 1) infinite;
   pointer-events: none;
+  will-change: transform, opacity;
 }
 
 .iss-radar-ring.ring-delayed {
@@ -123,7 +134,7 @@ body.dark-mode .leaflet-tile-pane {
 
 @keyframes radar-ping {
   0% {
-    transform: scale(0.3);
+    transform: scale(0.35);
     opacity: 1;
   }
   100% {
@@ -136,49 +147,52 @@ body.dark-mode .leaflet-tile-pane {
   position: relative;
   z-index: 2;
   filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.85));
-  transition: transform 0.3s ease;
+  transition: transform 0.25s ease;
+  will-change: transform;
 }
 
 .iss-marker-container:hover .iss-icon-core {
   transform: scale(1.15) rotate(5deg);
 }
 
-/* Polyline Glow */
+/* Glowing Orbital Polyline Trail */
 .iss-orbit-trail {
   filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.7));
 }
 
 /* ==========================================================================
-   Top HUD Bar
+   Top HUD Bar (Responsive & Safe-Area Aware)
    ========================================================================== */
 
 .hud-topbar {
   position: fixed;
-  top: 16px;
-  left: 20px;
-  right: 20px;
+  top: max(14px, var(--safe-top));
+  left: 16px;
+  right: 16px;
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 20px;
+  padding: 8px 16px;
   background: var(--bg-panel);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   box-shadow: var(--shadow-hud);
-  gap: 16px;
+  gap: 12px;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .brand-icon {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-sm);
   background: rgba(0, 240, 255, 0.1);
   border: 1px solid var(--accent-cyan-glow);
@@ -186,11 +200,17 @@ body.dark-mode .leaflet-tile-pane {
   align-items: center;
   justify-content: center;
   color: var(--accent-cyan);
+  flex-shrink: 0;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
 }
 
 .brand-title {
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   letter-spacing: 0.08em;
   font-weight: 700;
   color: #fff;
@@ -198,38 +218,40 @@ body.dark-mode .leaflet-tile-pane {
 }
 
 .brand-subtitle {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--accent-cyan);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.12em;
 }
 
 .hud-controls {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 /* Status Pill */
 .status-pill {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
+  gap: 6px;
+  padding: 6px 12px;
   border-radius: 999px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.05em;
   background: rgba(16, 185, 129, 0.12);
   border: 1px solid rgba(16, 185, 129, 0.35);
   color: var(--accent-emerald);
   transition: all 0.3s ease;
+  white-space: nowrap;
 }
 
 .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--accent-emerald);
   box-shadow: 0 0 8px var(--accent-emerald);
@@ -254,12 +276,14 @@ body.dark-mode .leaflet-tile-pane {
 
 /* HUD Buttons */
 .btn-hud {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 7px 14px;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
   font-family: var(--font-body);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 500;
   color: var(--text-main);
   background: rgba(255, 255, 255, 0.05);
@@ -267,6 +291,7 @@ body.dark-mode .leaflet-tile-pane {
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .btn-hud:hover {
@@ -279,7 +304,7 @@ body.dark-mode .leaflet-tile-pane {
   background: rgba(0, 240, 255, 0.18);
   border-color: var(--accent-cyan);
   color: #fff;
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.25);
 }
 
 /* ==========================================================================
@@ -288,18 +313,20 @@ body.dark-mode .leaflet-tile-pane {
 
 .reconnect-banner {
   position: fixed;
-  top: 86px;
+  top: calc(76px + var(--safe-top));
   left: 50%;
   transform: translateX(-50%);
   z-index: 1100;
-  background: rgba(245, 158, 11, 0.95);
+  background: rgba(245, 158, 11, 0.96);
   color: #070b14;
-  padding: 10px 20px;
+  padding: 9px 18px;
   border-radius: 999px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35);
   transition: opacity 0.3s ease, transform 0.3s ease;
+  max-width: 90vw;
+  text-align: center;
 }
 
 .reconnect-banner.hidden {
@@ -311,7 +338,8 @@ body.dark-mode .leaflet-tile-pane {
 .reconnect-content {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 8px;
 }
 
 .spinner {
@@ -321,6 +349,7 @@ body.dark-mode .leaflet-tile-pane {
   border-top-color: #070b14;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
 }
 
 @keyframes spin {
@@ -328,12 +357,12 @@ body.dark-mode .leaflet-tile-pane {
 }
 
 /* ==========================================================================
-   Telemetry HUD Card
+   Telemetry HUD Card (Collapsible for Mobile & Desktop)
    ========================================================================== */
 
 .telemetry-card {
   position: fixed;
-  bottom: 24px;
+  bottom: max(20px, var(--safe-bottom));
   right: 20px;
   width: 360px;
   z-index: 1000;
@@ -341,18 +370,29 @@ body.dark-mode .leaflet-tile-pane {
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
   backdrop-filter: blur(16px);
-  padding: 20px;
+  -webkit-backdrop-filter: blur(16px);
+  padding: 18px;
   box-shadow: var(--shadow-hud);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), max-height 0.3s ease;
+}
+
+.sheet-handle {
+  display: none;
+  width: 36px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  margin: 0 auto 10px auto;
 }
 
 .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
   border-bottom: 1px solid var(--border-subtle);
   padding-bottom: 12px;
+  cursor: pointer;
+  user-select: none;
 }
 
 .card-tag {
@@ -365,19 +405,26 @@ body.dark-mode .leaflet-tile-pane {
 
 .card-title {
   font-family: var(--font-display);
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 600;
   color: #fff;
   letter-spacing: 0.02em;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .countdown-badge {
   position: relative;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .progress-ring {
@@ -386,31 +433,86 @@ body.dark-mode .leaflet-tile-pane {
 }
 
 .progress-ring__circle {
-  stroke-dasharray: 75.4;
+  stroke-dasharray: 69.1;
   stroke-dashoffset: 0;
   transition: stroke-dashoffset 0.1s linear;
 }
 
 #countdown-sec {
   font-family: var(--font-display);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: var(--accent-cyan);
+}
+
+.btn-toggle-hud {
+  display: none; /* Shown on small screens or when collapsible */
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-toggle-hud:hover {
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+}
+
+.chevron-icon {
+  transition: transform 0.3s ease;
+}
+
+/* Collapsed Mini Summary (Default hidden on desktop, used when collapsed) */
+.card-mini-summary {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding-top: 8px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.mini-stat strong {
+  color: #fff;
+  font-family: var(--font-display);
+}
+
+.mini-divider {
+  color: var(--accent-cyan);
+}
+
+.mini-tag {
+  margin-left: auto;
+  font-size: 0.68rem;
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+/* Telemetry Body */
+.telemetry-body {
+  margin-top: 14px;
+  transition: opacity 0.25s ease;
 }
 
 /* Stats Grid */
 .grid-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 .stat-box {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: 12px;
+  padding: 10px 12px;
   transition: all 0.2s ease;
 }
 
@@ -421,11 +523,11 @@ body.dark-mode .leaflet-tile-pane {
 
 .stat-label {
   display: block;
-  font-size: 0.65rem;
+  font-size: 0.63rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   color: var(--text-dim);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .stat-val-row {
@@ -436,39 +538,39 @@ body.dark-mode .leaflet-tile-pane {
 
 .stat-value {
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #fff;
   letter-spacing: -0.01em;
 }
 
 .stat-unit {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--accent-cyan);
   font-weight: 500;
 }
 
 .stat-sub {
   display: block;
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   color: var(--text-dim);
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
-/* Card Detail Rows */
+/* Details Rows */
 .card-details {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.22);
   border-radius: var(--radius-md);
-  padding: 10px 12px;
-  margin-bottom: 16px;
+  padding: 8px 12px;
+  margin-bottom: 14px;
 }
 
 .detail-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 5px 0;
-  font-size: 0.78rem;
+  padding: 4px 0;
+  font-size: 0.76rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
@@ -488,7 +590,7 @@ body.dark-mode .leaflet-tile-pane {
 .detail-badge {
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 600;
   background: rgba(16, 185, 129, 0.15);
   color: var(--accent-emerald);
@@ -509,9 +611,10 @@ body.dark-mode .leaflet-tile-pane {
 
 .btn-action {
   flex: 1;
-  padding: 8px 12px;
+  min-height: 38px;
+  padding: 7px 12px;
   font-family: var(--font-body);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 600;
   border-radius: var(--radius-sm);
   background: var(--accent-cyan);
@@ -519,6 +622,9 @@ body.dark-mode .leaflet-tile-pane {
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-action:hover {
@@ -548,10 +654,11 @@ body.dark-mode .leaflet-tile-pane {
   z-index: 2000;
   background: rgba(3, 7, 18, 0.75);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
   transition: opacity 0.25s ease;
 }
 
@@ -564,24 +671,29 @@ body.dark-mode .leaflet-tile-pane {
   background: #0d1527;
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
-  max-width: 680px;
+  max-width: 660px;
   width: 100%;
-  max-height: 90vh;
+  max-height: 88vh;
   overflow-y: auto;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 240, 255, 0.15);
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 24px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  background: #0d1527;
+  z-index: 2;
 }
 
 .modal-header h3 {
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   color: #fff;
 }
 
@@ -589,47 +701,54 @@ body.dark-mode .leaflet-tile-pane {
   background: transparent;
   border: none;
   color: var(--text-muted);
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   line-height: 1;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: color 0.2s;
+  border-radius: 50%;
 }
 
 .modal-close:hover {
   color: #fff;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .modal-body {
-  padding: 24px;
+  padding: 20px;
 }
 
 .modal-intro {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   line-height: 1.6;
   color: var(--text-muted);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .explainer-section {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: 16px;
-  margin-bottom: 18px;
+  padding: 14px;
+  margin-bottom: 16px;
 }
 
 .explainer-section h4 {
   font-family: var(--font-display);
   color: var(--accent-cyan);
-  font-size: 0.95rem;
-  margin-bottom: 8px;
+  font-size: 0.92rem;
+  margin-bottom: 6px;
 }
 
 .explainer-section p {
-  font-size: 0.85rem;
-  line-height: 1.55;
+  font-size: 0.82rem;
+  line-height: 1.5;
   color: var(--text-muted);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .code-formula {
@@ -637,43 +756,43 @@ body.dark-mode .leaflet-tile-pane {
   border: 1px solid rgba(0, 240, 255, 0.2);
   border-left: 3px solid var(--accent-cyan);
   border-radius: var(--radius-sm);
-  padding: 10px 14px;
+  padding: 9px 12px;
   font-family: 'Courier New', Courier, monospace;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: #4ef4ff;
-  margin: 10px 0;
-  line-height: 1.6;
+  margin: 8px 0;
+  line-height: 1.5;
+  overflow-x: auto;
 }
 
 .formula-notes {
-  font-size: 0.78rem !important;
+  font-size: 0.75rem !important;
   color: var(--text-dim) !important;
 }
 
-/* Live Calc Demonstration Box */
 .live-calc-box {
   background: #080d19;
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-md);
   padding: 12px;
-  margin-top: 14px;
+  margin-top: 12px;
 }
 
 .live-calc-header {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--accent-emerald);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .live-calc-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 6px;
-  font-size: 0.8rem;
+  gap: 5px;
+  font-size: 0.78rem;
   color: var(--text-muted);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .highlight-cyan {
@@ -697,7 +816,7 @@ body.dark-mode .leaflet-tile-pane {
 }
 
 .canvas-caption {
-  font-size: 0.72rem !important;
+  font-size: 0.7rem !important;
   text-align: center;
   color: var(--text-dim) !important;
   margin-top: 6px !important;
@@ -705,34 +824,132 @@ body.dark-mode .leaflet-tile-pane {
 }
 
 /* ==========================================================================
-   Responsive Adaptations
+   Comprehensive Mobile & Tablet Responsiveness
    ========================================================================== */
 
+/* Tablet & Mobile Screens (<= 768px) */
 @media (max-width: 768px) {
   .hud-topbar {
-    left: 12px;
-    right: 12px;
-    top: 12px;
-    padding: 10px 14px;
+    left: 10px;
+    right: 10px;
+    top: max(10px, var(--safe-top));
+    padding: 8px 12px;
+    gap: 8px;
   }
 
   .brand-title {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
   }
 
   .brand-subtitle {
     display: none;
   }
 
+  /* Telemetry transforms into a responsive bottom sheet */
   .telemetry-card {
-    right: 12px;
-    left: 12px;
+    right: 10px;
+    left: 10px;
+    bottom: max(10px, var(--safe-bottom));
     width: auto;
-    bottom: 16px;
-    padding: 16px;
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .sheet-handle {
+    display: block;
+  }
+
+  .btn-toggle-hud {
+    display: flex;
+  }
+
+  /* Collapsed state on Mobile */
+  .telemetry-card.collapsed {
+    padding-bottom: 12px;
+  }
+
+  .telemetry-card.collapsed .card-header {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .telemetry-card.collapsed .card-mini-summary {
+    display: flex;
+  }
+
+  .telemetry-card.collapsed .telemetry-body {
+    display: none;
+  }
+
+  .telemetry-card.collapsed .chevron-icon {
+    transform: rotate(180deg);
+  }
+
+  /* Expanded state on Mobile: limits max height and enables scrolling */
+  .telemetry-card:not(.collapsed) .telemetry-body {
+    max-height: 52vh;
+    overflow-y: auto;
+    padding-right: 4px;
+    -webkit-overflow-scrolling: touch;
   }
 
   .leaflet-control-zoom {
-    display: none; /* Hide zoom on small screens to reduce clutter */
+    display: none; /* Hide zoom on mobile for maximum clean screen space */
+  }
+}
+
+/* Small Smartphone Screens (<= 480px) */
+@media (max-width: 480px) {
+  .hud-topbar {
+    padding: 6px 10px;
+  }
+
+  .brand-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .brand-title {
+    font-size: 0.85rem;
+  }
+
+  .btn-hud {
+    padding: 6px 8px;
+    font-size: 0.72rem;
+    gap: 4px;
+    min-height: 32px;
+  }
+
+  .status-pill {
+    padding: 4px 8px;
+    font-size: 0.68rem;
+  }
+
+  .grid-stats {
+    gap: 8px;
+  }
+
+  .stat-box {
+    padding: 8px 10px;
+  }
+
+  .stat-value {
+    font-size: 0.98rem;
+  }
+
+  .modal-window {
+    max-height: 92vh;
+  }
+
+  .modal-header {
+    padding: 12px 16px;
+  }
+
+  .modal-header h3 {
+    font-size: 0.98rem;
+  }
+
+  .modal-body {
+    padding: 14px;
   }
 }

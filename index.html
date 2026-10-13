@@ -2,13 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="theme-color" content="#070b14">
   <title>ISS Live Tracker — Real-Time Orbital Tracking</title>
   <meta name="description" content="Live International Space Station tracker using OpenStreetMap, Leaflet, and real-time telemetry updates.">
 
-  <!-- Google Fonts: Space Grotesk & Inter -->
+  <!-- Performance: Resource Preconnect & DNS-Prefetch for instantaneous loading -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin>
+  <link rel="dns-prefetch" href="https://tile.openstreetmap.org">
+  <link rel="preconnect" href="https://api.wheretheiss.at" crossorigin>
+  <link rel="dns-prefetch" href="https://api.wheretheiss.at">
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="dns-prefetch" href="https://unpkg.com">
+
+  <!-- Google Fonts: Space Grotesk & Inter with display=swap for zero font-blocking -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
   <!-- Leaflet CSS -->
@@ -23,7 +32,7 @@
   <div id="map" aria-label="World map showing ISS location"></div>
 
   <!-- Top Navigation & Status Bar -->
-  <header class="hud-topbar">
+  <header class="hud-topbar" id="hud-topbar">
     <div class="brand">
       <div class="brand-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -36,20 +45,20 @@
           <line x1="19" y1="12" x2="22" y2="12"></line>
         </svg>
       </div>
-      <div>
+      <div class="brand-text">
         <h1 class="brand-title">ISS LIVE TRACKER</h1>
-        <p class="brand-subtitle">NORAD ID #25544 &bull; LEO ORBIT</p>
+        <p class="brand-subtitle">NORAD #25544 &bull; LEO ORBIT</p>
       </div>
     </div>
 
-    <!-- Live Status / Reconnecting Badge -->
+    <!-- Live Status / Reconnecting Badge & Quick Actions -->
     <div class="hud-controls">
       <div id="status-pill" class="status-pill online">
         <span class="status-dot"></span>
-        <span id="status-text">LIVE &bull; 5s POLLING</span>
+        <span id="status-text">LIVE &bull; 5s</span>
       </div>
 
-      <button id="btn-follow" class="btn-hud active" title="Toggle auto-centering map on ISS">
+      <button id="btn-follow" class="btn-hud active" title="Toggle auto-centering map on ISS" aria-label="Toggle lock onto ISS">
         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
           <circle cx="12" cy="12" r="10"></circle>
           <circle cx="12" cy="12" r="3"></circle>
@@ -58,20 +67,20 @@
           <line x1="2" y1="12" x2="6" y2="12"></line>
           <line x1="18" y1="12" x2="22" y2="12"></line>
         </svg>
-        <span>Lock ISS</span>
+        <span class="btn-label">Lock</span>
       </button>
 
-      <button id="btn-projection-modal" class="btn-hud" title="View Lat/Lon projection math explanation">
+      <button id="btn-projection-modal" class="btn-hud" title="View Lat/Lon projection math explanation" aria-label="View Projection Math">
         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="2" y1="12" x2="22" y2="12"></line>
           <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
         </svg>
-        <span>Projection Math</span>
+        <span class="btn-label">Math</span>
       </button>
 
-      <button id="btn-theme-toggle" class="btn-hud" title="Toggle Map Tile Theme">
-        <span id="theme-label">🌙 Dark Mode</span>
+      <button id="btn-theme-toggle" class="btn-hud" title="Toggle Map Tile Theme" aria-label="Toggle dark mode theme">
+        <span id="theme-label">🌙 Mode</span>
       </button>
     </div>
   </header>
@@ -84,79 +93,103 @@
     </div>
   </div>
 
-  <!-- Telemetry HUD Card -->
+  <!-- Telemetry HUD Card (Collapsible for Mobile) -->
   <aside class="telemetry-card" id="telemetry-card">
-    <div class="card-header">
+    <!-- Mobile sheet drag handle indicator -->
+    <div class="sheet-handle" aria-hidden="true"></div>
+
+    <div class="card-header" id="card-header">
       <div class="header-main">
         <span class="card-tag">MISSION TELEMETRY</span>
         <h2 class="card-title">Orbital Position</h2>
       </div>
-      <div class="countdown-badge" title="Seconds until next position fetch">
-        <svg class="progress-ring" width="32" height="32">
-          <circle class="progress-ring__circle" stroke="#00f0ff" stroke-width="3" fill="transparent" r="12" cx="16" cy="16"/>
-        </svg>
-        <span id="countdown-sec">5s</span>
+
+      <div class="header-right">
+        <div class="countdown-badge" title="Seconds until next position fetch">
+          <svg class="progress-ring" width="30" height="30">
+            <circle class="progress-ring__circle" stroke="#00f0ff" stroke-width="3" fill="transparent" r="11" cx="15" cy="15"/>
+          </svg>
+          <span id="countdown-sec">5s</span>
+        </div>
+
+        <!-- Toggle Collapse/Expand Button -->
+        <button id="btn-toggle-hud" class="btn-toggle-hud" aria-label="Toggle telemetry drawer" title="Collapse/Expand Telemetry">
+          <svg class="chevron-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
       </div>
     </div>
 
-    <div class="grid-stats">
-      <div class="stat-box">
-        <span class="stat-label">LATITUDE</span>
-        <div class="stat-val-row">
-          <span class="stat-value" id="val-lat">--.----</span>
-          <span class="stat-unit" id="unit-lat">°</span>
-        </div>
-      </div>
-
-      <div class="stat-box">
-        <span class="stat-label">LONGITUDE</span>
-        <div class="stat-val-row">
-          <span class="stat-value" id="val-lon">--.----</span>
-          <span class="stat-unit" id="unit-lon">°</span>
-        </div>
-      </div>
-
-      <div class="stat-box">
-        <span class="stat-label">ALTITUDE</span>
-        <div class="stat-val-row">
-          <span class="stat-value" id="val-alt">---</span>
-          <span class="stat-unit">km</span>
-        </div>
-        <span class="stat-sub" id="val-alt-miles">--- mi</span>
-      </div>
-
-      <div class="stat-box">
-        <span class="stat-label">GROUND SPEED</span>
-        <div class="stat-val-row">
-          <span class="stat-value" id="val-speed">--,---</span>
-          <span class="stat-unit">km/h</span>
-        </div>
-        <span class="stat-sub" id="val-speed-mph">--,--- mph &bull; ~7.7 km/s</span>
-      </div>
+    <!-- Collapsed Compact Bar (Shown on Mobile when drawer is minimized) -->
+    <div class="card-mini-summary" id="card-mini-summary">
+      <span class="mini-stat"><strong id="mini-val-lat">--</strong>, <strong id="mini-val-lon">--</strong></span>
+      <span class="mini-divider">&bull;</span>
+      <span class="mini-stat" id="mini-val-speed">-- km/h</span>
+      <span class="mini-tag">Tap to expand</span>
     </div>
 
-    <div class="card-details">
-      <div class="detail-row">
-        <span class="detail-label">Solar Visibility</span>
-        <span class="detail-badge" id="val-visibility">Detecting...</span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label">Footprint Radius</span>
-        <span class="detail-value" id="val-footprint">-- km</span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label">Orbital Path Trail</span>
-        <span class="detail-value" id="val-trail-count">0 / 50 points</span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label">Last Transmission</span>
-        <span class="detail-value" id="val-timestamp">--:--:-- UTC</span>
-      </div>
-    </div>
+    <!-- Expandable Telemetry Body -->
+    <div class="telemetry-body" id="telemetry-body">
+      <div class="grid-stats">
+        <div class="stat-box">
+          <span class="stat-label">LATITUDE</span>
+          <div class="stat-val-row">
+            <span class="stat-value" id="val-lat">--.----</span>
+            <span class="stat-unit" id="unit-lat">°</span>
+          </div>
+        </div>
 
-    <div class="card-actions">
-      <button id="btn-recenter" class="btn-action">Center View on Marker</button>
-      <button id="btn-clear-trail" class="btn-action secondary">Reset Trail</button>
+        <div class="stat-box">
+          <span class="stat-label">LONGITUDE</span>
+          <div class="stat-val-row">
+            <span class="stat-value" id="val-lon">--.----</span>
+            <span class="stat-unit" id="unit-lon">°</span>
+          </div>
+        </div>
+
+        <div class="stat-box">
+          <span class="stat-label">ALTITUDE</span>
+          <div class="stat-val-row">
+            <span class="stat-value" id="val-alt">---</span>
+            <span class="stat-unit">km</span>
+          </div>
+          <span class="stat-sub" id="val-alt-miles">--- mi</span>
+        </div>
+
+        <div class="stat-box">
+          <span class="stat-label">GROUND SPEED</span>
+          <div class="stat-val-row">
+            <span class="stat-value" id="val-speed">--,---</span>
+            <span class="stat-unit">km/h</span>
+          </div>
+          <span class="stat-sub" id="val-speed-mph">--,--- mph &bull; ~7.7 km/s</span>
+        </div>
+      </div>
+
+      <div class="card-details">
+        <div class="detail-row">
+          <span class="detail-label">Solar Visibility</span>
+          <span class="detail-badge" id="val-visibility">Detecting...</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Footprint Radius</span>
+          <span class="detail-value" id="val-footprint">-- km</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Orbital Path Trail</span>
+          <span class="detail-value" id="val-trail-count">0 / 50 points</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Last Transmission</span>
+          <span class="detail-value" id="val-timestamp">--:--:-- UTC</span>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <button id="btn-recenter" class="btn-action">Center on ISS</button>
+        <button id="btn-clear-trail" class="btn-action secondary">Reset Trail</button>
+      </div>
     </div>
   </aside>
 
@@ -169,7 +202,7 @@
       </div>
       <div class="modal-body">
         <p class="modal-intro">
-          The Earth is a 3D sphere, while your computer screen is a 2D flat grid of pixels (<code>x, y</code>).
+          The Earth is a 3D sphere, while your computer or phone screen is a 2D flat grid of pixels (<code>x, y</code>).
           Converting latitude and longitude coordinates into pixel coordinates requires a <strong>Cartographic Projection</strong>.
         </p>
 
@@ -219,9 +252,9 @@
     </div>
   </div>
 
-  <!-- Leaflet JavaScript -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <!-- Application Logic -->
-  <script src="app.js"></script>
+  <!-- Leaflet JavaScript (Deferred for fast rendering) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
+  <!-- Application Logic (Deferred) -->
+  <script src="app.js" defer></script>
 </body>
 </html>
